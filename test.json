@@ -1,4 +1,5 @@
 {
+  "Test Unicode": "\u00e9\u0d32",
   "firstName": "John",
   "lastName": "Smith",
   "age": 25,

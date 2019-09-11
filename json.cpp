@@ -528,7 +528,7 @@ bool JSON::_parse_true(std::istream& f)
 {
     char c[3];
     f.read(c, 3);
-    if(!f.good() || JSON_str(c) != "rue") return false;
+    if(!f.good() || std::string(c) != "rue") return false;
     m_t = BOOL;
     mem = std::make_shared<JSON_bool>(true);
     return true;
@@ -538,7 +538,7 @@ bool JSON::_parse_false(std::istream& f)
 {
     char c[4];
     f.read(c, 4);
-    if(!f.good() || JSON_str(c) != "alse") return false;
+    if(!f.good() || std::string(c) != "alse") return false;
     m_t = BOOL;
     mem = std::make_shared<JSON_bool>(false);
     return true;
@@ -548,7 +548,7 @@ bool JSON::_parse_null(std::istream& f)
 {
     char c[3];
     f.read(c, 3);
-    if(!f.good() || JSON_str(c) != "ull") return false;
+    if(!f.good() || std::string(c) != "ull") return false;
     m_t = NONE;
     mem = std::make_shared<JSON_none>(0);
     return true;
@@ -556,7 +556,7 @@ bool JSON::_parse_null(std::istream& f)
 
 bool JSON::_parse_str(std::istream& f)
 {
-    mem = std::make_shared<JSON_str>("");
+    mem = std::make_shared<JSON_str>();
     if(!_parse_key(f, (*(JSON_str*)mem.get()))) return false;
     m_t = STR;
     return true;
@@ -565,7 +565,7 @@ bool JSON::_parse_str(std::istream& f)
 bool JSON::_parse_key(std::istream& f, JSON_str& key)
 {
     char c;
-    key = "";
+    key = JSON_str();
     while(true)
     {
         f.read(&c, 1);
@@ -624,17 +624,17 @@ bool JSON::_parse_hexa(std::istream& f, JSON_str& key)
             if((hex_code[i] < '0' && hex_code[i] > '9') && (hex_code[i] < 'a' && hex_code[i] > 'f'))
                 return false;
         key += "\\u" + JSON_str(hex_code);
-    #elif
-        JSON_str_char uchar = 0; // assuming UTF-8 char
+    #else
+        JSON_str_char uchar = 0; // assuming Unicode char (16 bits)
         for(int i = 0; i < 4; ++i)
         {
             switch(hex_code[i])
             {
                 case 'a':case 'b':case 'c':case 'd':case 'e':case 'f':
-                    uchar = hex_code[i] - 'a' + 10 + uchar << 4;
+                    uchar = hex_code[i] - 'a' + 10 + (uchar << 4);
                     break;
                 case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':
-                    uchar = hex_code[i] - '0' + uchar << 4;
+                    uchar = hex_code[i] - '0' + (uchar << 4);
                     break;
                 default: return false;
             }
@@ -642,6 +642,31 @@ bool JSON::_parse_hexa(std::istream& f, JSON_str& key)
         key += uchar;
     #endif
     return true;
+}
+
+std::string JSON::to_string(const JSON_str& str) const
+{
+    #ifndef JSON_STR_UNICODE
+    return str;
+    #else
+    std::string conv = "";
+    int tmp = 0;
+    for(size_t i = 0; i < str.size(); ++i)
+    {
+        if(str[i] < 128) conv += str[i];
+        else
+        {
+            conv += "\\u";
+            for(int j = 3; j >= 0; --j)
+            {
+                tmp = ((str[i] >> (j*4)) % 16);
+                if(tmp >= 10) conv += (char)('a'+tmp-10);
+                else conv += (char)('0'+tmp);
+            }
+        }
+    }
+    return conv;
+    #endif
 }
 
 JSON& JSON::operator[](size_t index) const
@@ -750,7 +775,7 @@ std::ostream& operator<<(std::ostream& os, const JSON& j)
             for(JSON_obj::iterator it = ((JSON_obj*)j.get())->begin(); it != ((JSON_obj*)j.get())->end(); ++it)
             {
                 if(it != ((JSON_obj*)j.get())->begin()) os << ", ";
-                os << it->first << " : " << it->second;
+                os << j.to_string(it->first) << " : " << it->second;
             }
             os << " }";
             break;
@@ -764,7 +789,7 @@ std::ostream& operator<<(std::ostream& os, const JSON& j)
             os << " ]";
             break;
         case JSON::STR:
-            os << "\"" << (*(JSON_str*)j.get()) << "\"";
+            os << "\"" << j.to_string(*(JSON_str*)j.get()) << "\"";
             break;
         case JSON::INT:
             os << (*(JSON_int*)j.get());

@@ -9,8 +9,13 @@
 #include <ostream>
 
 class JSON;
+#ifdef JSON_STR_UNICODE
+typedef std::wstring JSON_str;
+typedef wchar_t JSON_str_char;
+#else
 typedef std::string JSON_str;
 typedef char JSON_str_char;
+#endif
 typedef std::map<JSON_str, JSON> JSON_obj;
 typedef std::vector<JSON> JSON_list;
 typedef int64_t JSON_int;
@@ -54,6 +59,7 @@ class JSON
         void set(const JSON_obj &o);
         void set(const JSON_list &l);
 
+        std::string to_string(const JSON_str& str) const; // convert unicode string to ansi
     protected:
         bool _parse(std::istream& f);
         bool _parse_obj(std::istream& f);
