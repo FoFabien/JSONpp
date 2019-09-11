@@ -770,13 +770,13 @@ std::ostream& operator<<(std::ostream& os, const JSON& j)
             os << (*(JSON_int*)j.get());
             break;
         case JSON::BOOL:
-            os << ((*(JSON_bool*)j.get()) ? "True" : "False");
+            os << ((*(JSON_bool*)j.get()) ? "true" : "false");
             break;
         case JSON::FLOAT:
             os << (*(JSON_float*)j.get());
             break;
         case JSON::NONE:
-            os << "Null";
+            os << "null";
             break;
     }
     return os;
