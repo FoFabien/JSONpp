@@ -616,8 +616,9 @@ bool JSON::_parse_key(std::istream& f, JSON_str& key)
 
 bool JSON::_parse_hexa(std::istream& f, JSON_str& key)
 {
-    char hex_code[4];
+    char hex_code[5];
     f.read(hex_code, 4);
+    hex_code[4] = '\0';
     if(!f.good()) return false;
     #ifndef JSON_STR_UNICODE
         for(int i = 0; i < 4; ++i)
