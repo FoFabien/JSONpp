@@ -42,6 +42,7 @@ class JSON
         ~JSON();
         Type type() const;
         bool parse(const std::string& file);
+        bool parse(std::istream& s);
         bool write(const std::string& file);
         JSON& operator[](size_t index) const;
         JSON& operator[](const JSON_str &key) const;

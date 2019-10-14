@@ -88,6 +88,12 @@ bool JSON::parse(const std::string& file)
     return _parse(f);
 }
 
+bool JSON::parse(std::istream& s)
+{
+    m_t = UNDEF;
+    return _parse(s);
+}
+
 bool JSON::write(const std::string& file)
 {
     std::ofstream f(file, std::ios::out | std::ios::trunc | std::ios::binary);
