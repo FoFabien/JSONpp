@@ -435,7 +435,7 @@ bool JSON::_read_value(std::istream& f, char& c, JSON_float& d)
                 sign = 1;
                 break;
             case '.':
-                if(f.tellg() != beg || dot || !num)
+                if(f.tellg() == beg || dot || !num)
                     return false;
                 dot = true;
                 break;
